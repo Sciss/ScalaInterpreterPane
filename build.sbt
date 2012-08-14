@@ -34,13 +34,35 @@ fork in run := true
 
 // ---- build info ----
 
-buildInfoSettings
+// buildInfoSettings
 
-sourceGenerators in Compile <+= buildInfo
+// sourceGenerators in Compile <+= buildInfo
 
-buildInfoKeys := Seq[ Scoped ]( name, organization, version, scalaVersion, description, homepage, licenses )
+// buildInfoKeys := Seq[ Scoped ]( name, organization, version, scalaVersion, description, homepage, licenses )
 
-buildInfoPackage := "de.sciss.scalainterpreter"
+// buildInfoPackage := "de.sciss.scalainterpreter"
+
+seq( EditSource.settings: _* )
+
+sources in EditSource.Config <+= baseDirectory.map( b =>
+  (b / "src" / "main" / "editsource" / "BuildInfo.scala")
+)
+
+// EditSource.variables in EditSource.Config <+= name( "projectName" -> _ )
+
+EditSource.variables in EditSource.Config <++= (name, organization, version, scalaVersion, description, homepage, licenses) {
+   (nameVal, orgVal, versionVal, scalaVersionVal, descVal, homepageVal, licensesVal) => Seq(
+      "projectName"    -> nameVal,
+      "organization"   -> orgVal,
+      "projectVersion" -> versionVal,
+      "scalaVersion"   -> scalaVersionVal,
+      "description"    -> descVal,
+      "homepage"       -> homepageVal.get.toString, // must be String here
+      "license"        -> licensesVal.head._1
+   )
+}
+
+sourceGenerators in Compile <+= EditSource.edit in EditSource.Config
 
 // ---- publishing ----
 
